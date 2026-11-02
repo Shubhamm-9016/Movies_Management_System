@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MovieHub | Admin Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-icon">▶</span><div><b>MovieHub</b><small>ADMIN PANEL</small></div></div>
+    <div class="nav-label">WORKSPACE</div>
+    <a class="nav active" href="/">▦ &nbsp; Dashboard</a>
+    <a class="nav" href="#movie-list">▣ &nbsp; Manage Movies</a>
+    <div class="sidebar-bottom"><div class="admin-avatar">A</div><div><b>Administrator</b><small>System Manager</small></div></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><span class="eyebrow">MOVIE TICKET BOOKING SYSTEM</span><h1>Dashboard</h1></div><div class="profile"><span class="online"></span> Admin</div></header>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for category, message in messages %}<div class="alert {{ category }}">{{ message }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+    <section class="welcome"><div><span class="eyebrow light">OVERVIEW</span><h2>Welcome back, Admin 👋</h2><p>Manage your movie catalogue from one place.</p></div><div class="welcome-mark">▶</div></section>
+    <section class="stats">
+      <div class="stat-card"><div class="stat-icon purple">▣</div><div><small>Total Movies</small><strong>{{ stats.total or 0 }}</strong></div></div>
+      <div class="stat-card"><div class="stat-icon green">✓</div><div><small>Active Movies</small><strong>{{ stats.active or 0 }}</strong></div></div>
+      <div class="stat-card"><div class="stat-icon orange">Ⅱ</div><div><small>Inactive Movies</small><strong>{{ stats.inactive or 0 }}</strong></div></div>
+    </section>
+    <section class="panel add-panel">
+      <div class="section-heading"><div><span class="eyebrow">CATALOGUE</span><h2>Add New Movie</h2></div><span class="tag">ADMIN ACTION</span></div>
+      <form action="/add" method="POST" class="movie-form">
+        <label>Movie title<input name="title" placeholder="Enter movie name" maxlength="120" required></label>
+        <label>Genre<input name="genre" placeholder="e.g. Action, Comedy" required></label>
+        <label>Ticket price (₹)<input name="price" type="number" min="1" step="0.01" placeholder="199" required></label>
+        <label>Duration (minutes)<input name="duration" type="number" min="1" placeholder="120"></label>
+        <label>Language<input name="language" placeholder="English" value="English"></label>
+        <button class="primary-btn" type="submit">＋ Add Movie</button>
+      </form>
+    </section>
+    <section class="panel" id="movie-list">
+      <div class="section-heading list-heading"><div><span class="eyebrow">LIBRARY</span><h2>Manage Movies <span class="count">{{ movies|length }}</span></h2></div>
+        <form action="/search" method="GET" class="search"><input name="q" value="{{ search }}" placeholder="Search title or genre..."><button type="submit">⌕</button></form>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>MOVIE</th><th>GENRE</th><th>PRICE</th><th>DURATION</th><th>LANGUAGE</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>
+      {% for movie in movies %}
+      <tr>
+        <td><div class="movie-name"><span class="poster">▶</span><b>{{ movie.title }}</b></div></td>
+        <td>{{ movie.genre }}</td><td class="price">₹{{ '%.2f'|format(movie.price) }}</td>
+        <td>{{ movie.duration or '—' }}{% if movie.duration %} min{% endif %}</td><td>{{ movie.language }}</td>
+        <td><span class="status {{ movie.status|lower }}">{{ movie.status }}</span></td>
+        <td><div class="actions">
+          <button class="icon-btn edit" type="button" title="Edit" onclick='editMovie({{ movie|tojson }})'>✎</button>
+          <form action="/toggle/{{ movie.movie_id }}" method="POST"><button class="icon-btn" title="Toggle status">⇄</button></form>
+          <form action="/delete/{{ movie.movie_id }}" method="POST" onsubmit="return confirm('Delete this movie?')"><button class="icon-btn delete" title="Delete">⌫</button></form>
+        </div></td>
+      </tr>
+      {% else %}<tr><td colspan="7" class="empty">No movies found. Add your first movie above.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    <footer>MovieHub Admin Panel <span>•</span> Movie Ticket Booking System</footer>
+  </main>
+</div>
+<div class="modal-backdrop" id="editModal"><div class="modal"><button class="close" onclick="closeModal()">×</button><span class="eyebrow">UPDATE CATALOGUE</span><h2>Edit Movie</h2>
+<form id="editForm" method="POST" class="movie-form one-col">
+<label>Movie title<input id="editTitle" name="title" required></label><label>Genre<input id="editGenre" name="genre" required></label>
+<label>Ticket price (₹)<input id="editPrice" name="price" type="number" min="1" step="0.01" required></label><label>Duration (minutes)<input id="editDuration" name="duration" type="number" min="1"></label><label>Language<input id="editLanguage" name="language" required></label>
+<button class="primary-btn" type="submit">Save Changes</button></form></div></div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>
